@@ -541,6 +541,7 @@ export default class Trx {
     fullImplem: boolean,
     loadConfig: LoadConfig,
   ) {
+    console.log("Log in hw-app-trx");
     return signTIP712Message(this.transport, path, typedMessage, fullImplem, loadConfig);
   }
 

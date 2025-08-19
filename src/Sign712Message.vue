@@ -81,6 +81,7 @@ async function handleSignEIP712Message() {
   };
 
   const { app, path } = await makeApp();
+  console.log("Begin to sign");
   const result = await app.signTIP712Message(path, message);
   console.log('Sign 712 Message Result : ', result);
 }
