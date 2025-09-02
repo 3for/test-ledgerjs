@@ -1,9 +1,12 @@
-import { hexBuffer, splitPath } from "../utils";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.signTIP712HashedMessage = void 0;
+const utils_1 = require("../utils");
 const CLA = 0xe0;
-export const signTIP712HashedMessage = (transport, path, domainSeparatorHex, hashStructMessageHex) => {
-    const domainSeparator = hexBuffer(domainSeparatorHex);
-    const hashStruct = hexBuffer(hashStructMessageHex);
-    const paths = splitPath(path);
+const signTIP712HashedMessage = (transport, path, domainSeparatorHex, hashStructMessageHex) => {
+    const domainSeparator = (0, utils_1.hexBuffer)(domainSeparatorHex);
+    const hashStruct = (0, utils_1.hexBuffer)(hashStructMessageHex);
+    const paths = (0, utils_1.splitPath)(path);
     const buffer = Buffer.alloc(1 + paths.length * 4 + 32 + 32, 0);
     let offset = 0;
     buffer[0] = paths.length;
@@ -18,4 +21,5 @@ export const signTIP712HashedMessage = (transport, path, domainSeparatorHex, has
         return response.slice(0, 65).toString("hex");
     });
 };
+exports.signTIP712HashedMessage = signTIP712HashedMessage;
 //# sourceMappingURL=index.js.map

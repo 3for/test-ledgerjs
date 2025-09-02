@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /********************************************************************************
  *   Ledger Node JS API
  *   (c) 2016-2017 Ledger
@@ -15,8 +17,8 @@
  *  limitations under the License.
  ********************************************************************************/
 // FIXME drop:
-import { splitPath, foreach, decodeVarint } from "./utils";
-import { signTIP712HashedMessage } from "./TIP712";
+const utils_1 = require("./utils");
+const TIP712_1 = require("./TIP712");
 const remapTransactionRelatedErrors = e => {
     if (e && e.statusCode === 0x6a80) {
         // TODO:
@@ -41,7 +43,7 @@ const CHUNK_SIZE = 250;
  * import Trx from "@ledgerhq/hw-app-trx";
  * const trx = new Trx(transport)
  */
-export default class Trx {
+class Trx {
     transport;
     constructor(transport, scrambleKey = "TRX") {
         this.transport = transport;
@@ -64,7 +66,7 @@ export default class Trx {
      * const address = await tron.getAddress("44'/195'/0'/0/0").then(o => o.address)
      */
     getAddress(path, boolDisplay) {
-        const paths = splitPath(path);
+        const paths = (0, utils_1.splitPath)(path);
         const buffer = Buffer.alloc(PATHS_LENGTH_SIZE + paths.length * PATH_SIZE);
         buffer[0] = paths.length;
         paths.forEach((element, index) => {
@@ -84,8 +86,8 @@ export default class Trx {
         });
     }
     getNextLength(tx) {
-        const field = decodeVarint(tx, 0);
-        const data = decodeVarint(tx, field.pos);
+        const field = (0, utils_1.decodeVarint)(tx, 0);
+        const data = (0, utils_1.decodeVarint)(tx, field.pos);
         if ((field.value & 0x07) === 0)
             return data.pos;
         return data.value + data.pos;
@@ -103,7 +105,7 @@ export default class Trx {
      * const signature = await tron.signTransaction("44'/195'/0'/0/0", "0a02f5942208704dda506d59dceb40f0f4978f802e5a69080112650a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412340a1541978dbd103cfe59c35e753d09dd44ae1ae64621c7121541e2ae49db6a70b9b4757d2137a43b69b24a445780188ef8b5ba0470cbb5948f802e", [], 105);
      */
     signTransaction(path, rawTxHex, tokenSignatures) {
-        const paths = splitPath(path);
+        const paths = (0, utils_1.splitPath)(path);
         let rawTx = Buffer.from(rawTxHex, "hex");
         const toSend = [];
         let data = Buffer.alloc(PATHS_LENGTH_SIZE + paths.length * PATH_SIZE);
@@ -157,7 +159,7 @@ export default class Trx {
                 startBytes.push(0x90);
             }
         }
-        return foreach(toSend, (data, i) => {
+        return (0, utils_1.foreach)(toSend, (data, i) => {
             return this.transport.send(CLA, SIGN, startBytes[i], 0x00, data).then(apduResponse => {
                 response = apduResponse;
             });
@@ -177,7 +179,7 @@ export default class Trx {
      * const signature = await tron.signTransactionHash("44'/195'/0'/0/0", "25b18a55f86afb10e7aca38d0073d04c80397c6636069193953fdefaea0b8369");
      */
     signTransactionHash(path, rawTxHashHex) {
-        const paths = splitPath(path);
+        const paths = (0, utils_1.splitPath)(path);
         let data = Buffer.alloc(PATHS_LENGTH_SIZE + paths.length * PATH_SIZE);
         data[0] = paths.length;
         paths.forEach((element, index) => {
@@ -241,7 +243,7 @@ export default class Trx {
      * const signature = await tron.signPersonalMessage("44'/195'/0'/0/0", "43727970746f436861696e2d54726f6e5352204c6564676572205472616e73616374696f6e73205465737473");
      */
     signPersonalMessage(path, messageHex) {
-        const paths = splitPath(path);
+        const paths = (0, utils_1.splitPath)(path);
         const message = Buffer.from(messageHex, "hex");
         let offset = 0;
         const toSend = [];
@@ -267,7 +269,7 @@ export default class Trx {
             offset += chunkSize;
         }
         let response;
-        return foreach(toSend, (data, i) => {
+        return (0, utils_1.foreach)(toSend, (data, i) => {
             return this.transport
                 .send(CLA, SIGN_MESSAGE, i === 0 ? 0x00 : 0x80, 0x00, data)
                 .then(apduResponse => {
@@ -287,7 +289,7 @@ export default class Trx {
      * const signature = await tron.signPersonalMessageFullDisplay("44'/195'/0'/0/0", "43727970746f436861696e2d54726f6e5352204c6564676572205472616e73616374696f6e73205465737473");
      */
     signPersonalMessageFullDisplay(path, messageHex) {
-        const paths = splitPath(path);
+        const paths = (0, utils_1.splitPath)(path);
         const message = Buffer.from(messageHex, "hex");
         let offset = 0;
         const toSend = [];
@@ -313,7 +315,7 @@ export default class Trx {
             offset += chunkSize;
         }
         let response;
-        return foreach(toSend, (data, i) => {
+        return (0, utils_1.foreach)(toSend, (data, i) => {
             return this.transport
                 .send(CLA, INS_SIGN_PERSONAL_MESSAGE_FULL_DISPLAY, i === 0 ? 0x00 : 0x80, 0x00, data)
                 .then(apduResponse => {
@@ -329,7 +331,7 @@ export default class Trx {
        const signature = await tronApp.signTIP712HashedMessage("44'/195'/0'/0/0",Buffer.from( "0101010101010101010101010101010101010101010101010101010101010101").toString("hex"), Buffer.from("0202020202020202020202020202020202020202020202020202020202020202").toString("hex"));
      */
     signTIP712HashedMessage(path, domainSeparatorHex, hashStructMessageHex) {
-        return signTIP712HashedMessage(this.transport, path, domainSeparatorHex, hashStructMessageHex);
+        return (0, TIP712_1.signTIP712HashedMessage)(this.transport, path, domainSeparatorHex, hashStructMessageHex);
     }
     /**
      * get Tron address for a given BIP 32 path.
@@ -340,7 +342,7 @@ export default class Trx {
      * const signature = await tron.getECDHPairKey("44'/195'/0'/0/0", "04ff21f8e64d3a3c0198edfbb7afdc79be959432e92e2f8a1984bb436a414b8edcec0345aad0c1bf7da04fd036dd7f9f617e30669224283d950fab9dd84831dc83");
      */
     getECDHPairKey(path, publicKey) {
-        const paths = splitPath(path);
+        const paths = (0, utils_1.splitPath)(path);
         const data = Buffer.from(publicKey, "hex");
         const buffer = Buffer.alloc(1 + paths.length * 4 + data.length);
         buffer[0] = paths.length;
@@ -353,4 +355,5 @@ export default class Trx {
             .then(response => response.slice(0, 65).toString("hex"));
     }
 }
+exports.default = Trx;
 //# sourceMappingURL=Trx.js.map
