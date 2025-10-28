@@ -16,7 +16,7 @@
  ********************************************************************************/
 // FIXME drop:
 import { splitPath, foreach, decodeVarint } from "./utils";
-import { signTIP712HashedMessage } from "./TIP712";
+import { signTIP712HashedMessage, signTIP712Message } from "./TIP712";
 const remapTransactionRelatedErrors = e => {
     if (e && e.statusCode === 0x6a80) {
         // TODO:
@@ -43,15 +43,22 @@ const CHUNK_SIZE = 250;
  */
 export default class Trx {
     transport;
-    constructor(transport, scrambleKey = "TRX") {
+    loadConfig;
+    setLoadConfig(loadConfig) {
+        this.loadConfig = loadConfig;
+    }
+    constructor(transport, scrambleKey = "TRX", loadConfig = {}) {
         this.transport = transport;
+        this.loadConfig = loadConfig;
         transport.decorateAppAPIMethods(this, [
             "getAddress",
             "getECDHPairKey",
             "signTransaction",
             "signTransactionHash",
             "signPersonalMessage",
+            "signPersonalMessageFullDisplay",
             "signTIP712HashedMessage",
+            "signTIP712Message",
             "getAppConfiguration",
         ], scrambleKey);
     }
@@ -330,6 +337,40 @@ export default class Trx {
      */
     signTIP712HashedMessage(path, domainSeparatorHex, hashStructMessageHex) {
         return signTIP712HashedMessage(this.transport, path, domainSeparatorHex, hashStructMessageHex);
+    }
+    /**
+     * Sign an TIP-712 formatted message following the specification here:
+     * https://github.com/tronprotocol/tips/blob/master/tip-712.md
+     * ⚠️ This method is not compatible with nano S (LNS). Make sure to use a try/catch to fallback on the signTIP712HashedMessage method ⚠️
+     @example
+     tronApp.signTIP712Message("44'/195'/0'/0/0", {
+        domain: {
+          chainId: 1151668124,
+          name: "Da Domain",
+          verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+          version: "1"
+        },
+        types: {
+          "EIP712Domain": [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" }
+            ],
+          "Test": [
+            { name: "contents", type: "string" }
+          ]
+        },
+        primaryType: "Test",
+        message: {contents: "Hello, Bob!"},
+      })
+     *
+     * @param {String} path derivationPath
+     * @param {Object} jsonMessage message to sign
+     * @param {Boolean} fullImplem use the legacy implementation
+     */
+    signTIP712Message(path, typedMessage, fullImplem = false, withoutFilters = false) {
+        return signTIP712Message(this.transport, path, typedMessage, fullImplem, this.loadConfig, withoutFilters);
     }
     /**
      * get Tron address for a given BIP 32 path.
