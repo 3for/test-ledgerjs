@@ -10,6 +10,10 @@ window.TransportWebHID = TransportWebHID;
 async function makeApp() {
   const transport = await TransportWebHID.create();
   const app = new Trx(transport);
+  app.setLoadConfig({
+    cryptoassetsBaseURL: "http://localhost:8080/cryptoassets",
+    calServiceURL: "http://localhost:8080",
+  });
   const path = `44'/195'/${0}'/0/0`;
   const address = await app.getAddress(path);
   return { transport, path, app, address };
