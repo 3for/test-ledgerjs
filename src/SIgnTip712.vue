@@ -12,7 +12,7 @@ window.TransportWebHID = TransportWebHID;
 const domain = {
   name: 'TRON Mail',
   version: '1',
-  chainId: '0x2b6653dc',
+  chainId: '3448148188',
   verifyingContract: 'TUe6BwpA7sVTDKaJQoia7FWZpC9sK8WM2t'
 };
 
