@@ -64,6 +64,63 @@ async function handleSign() {
   const result = TronWeb.Trx.verifyTypedData(domain, types, value, signature, address.address);
   console.log('verify result: ', result);
 }
+
+async function handleSign712FullDisplay() {
+  const transport = await TransportWebHID.create();
+  const app = new Trx(transport);
+  // change your path
+  const path = `44'/195'/${0}'/0/0`;
+  // get address
+  const address = await app.getAddress(path);
+  console.log('Your address is: ', address);
+
+  const typedData = {
+    "types": {
+      "EIP712Domain": [
+        { "name": "name", "type": "string" },
+        { "name": "version", "type": "string" },
+        { "name": "chainId", "type": "uint256" },
+        { "name": "verifyingContract", "type": "address" }
+      ],
+      "Person": [
+        { "name": "name", "type": "string" },
+        { "name": "wallet", "type": "address" }
+      ],
+      "Mail": [
+        { "name": "from", "type": "Person" },
+        { "name": "to", "type": "Person" },
+        { "name": "contents", "type": "string" }
+      ]
+    },
+    "domain": {
+      "name": "TRON Mail",
+      "version": "1",
+      "chainId": 3448148188,
+      "verifyingContract": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+    },
+    "primaryType": "Mail",
+    "message": {
+      "from": {
+        "name": "Cow",
+        "wallet": "0xCD2A3D9F938E13CD947EC05ABC7FE734DF8DD826"
+      },
+      "to": {
+        "name": "Bob",
+        "wallet": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+      },
+      "contents": "Hello, Bob!"
+    }
+  };
+  // request Ledger to sign TIP712HashedMessage
+  const signature = await app.signTIP712Message(path, typedData);
+  console.log('Signed signature: ', signature);
+  await transport?.close();
+
+  // verify signature
+  const result = TronWeb.Trx.verifyTypedData(domain, types, value, signature, address.address);
+  console.log('verify result: ', result);
+}
+
 async function handleSignWithTronLink() {
   const adapter = new TronLinkAdapter({ checkTimeout: 1000 });
   await adapter.connect();
@@ -77,6 +134,7 @@ async function handleSignWithTronLink() {
 <template>
   <div>
     <button @click="handleSign">sign and verify</button>
+    <button @click="handleSign712FullDisplay">sign 712 full display and verify</button>
     <button @click="handleSignWithTronLink">sign and verify With TronLink Ledger Account</button>
   </div>
 </template>
